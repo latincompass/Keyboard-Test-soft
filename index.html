@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘测试器 - 客制化键盘爱好者</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .theme-dark {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-key: #0f3460;
+            --bg-key-active: #e94560;
+            --bg-key-pressed: #533483;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --border: #2a2a4a;
+        }
+
+        .theme-light {
+            --bg-primary: #f0f0f0;
+            --bg-secondary: #ffffff;
+            --bg-key: #e0e0e0;
+            --bg-key-active: #4a90d9;
+            --bg-key-pressed: #a0c4e8;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --accent: #4a90d9;
+            --border: #d0d0d0;
+        }
+
+        .theme-purple {
+            --bg-primary: #1e1e2f;
+            --bg-secondary: #2d2d44;
+            --bg-key: #4a3f6a;
+            --bg-key-active: #9d4edd;
+            --bg-key-pressed: #6a4c93;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0c0;
+            --accent: #9d4edd;
+            --border: #4a3f6a;
+        }
+
+        .theme-green {
+            --bg-primary: #0d1b1e;
+            --bg-secondary: #1a2d2e;
+            --bg-key: #2d4a3e;
+            --bg-key-active: #00ff88;
+            --bg-key-pressed: #2d8a6e;
+            --text-primary: #e0ffe0;
+            --text-secondary: #80c080;
+            --accent: #00ff88;
+            --border: #2d4a3e;
+        }
+
+        .theme-orange {
+            --bg-primary: #1a1410;
+            --bg-secondary: #2d2018;
+            --bg-key: #4a3020;
+            --bg-key-active: #ff6b35;
+            --bg-key-pressed: #8a4a30;
+            --text-primary: #ffe0d0;
+            --text-secondary: #c08060;
+            --accent: #ff6b35;
+            --border: #4a3020;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), var(--bg-key-pressed));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .logo-key {
+            width: 35px;
+            height: 35px;
+            background-color: var(--bg-secondary);
+            border-radius: 6px;
+            position: relative;
+            border: 2px solid var(--text-primary);
+        }
+
+        .logo-key::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 4px;
+            background-color: var(--text-primary);
+            border-radius: 2px;
+        }
+
+        .logo-key::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: var(--text-primary);
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent), var(--text-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .theme-btn[data-theme="dark"] {
+            background: linear-gradient(135deg, #1a1a2e, #e94560);
+        }
+
+        .theme-btn[data-theme="light"] {
+            background: linear-gradient(135deg, #f0f0f0, #4a90d9);
+        }
+
+        .theme-btn[data-theme="purple"] {
+            background: linear-gradient(135deg, #1e1e2f, #9d4edd);
+        }
+
+        .theme-btn[data-theme="green"] {
+            background: linear-gradient(135deg, #0d1b1e, #00ff88);
+        }
+
+        .theme-btn[data-theme="orange"] {
+            background: linear-gradient(135deg, #1a1410, #ff6b35);
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background-color: var(--bg-key);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .keyboard-container {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .keyboard {
+            display: flex;
+            gap: 30px;
+            justify-content: flex-start;
+        }
+
+        .keyboard-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .key {
+            background-color: var(--bg-key);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.1s;
+            min-height: 50px;
+            user-select: none;
+        }
+
+        .key:hover {
+            background-color: var(--bg-key-pressed);
+        }
+
+        .key.active {
+            background-color: var(--bg-key-active);
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .key.pressed {
+            background-color: var(--bg-key-pressed);
+        }
+
+        .key-normal {
+            width: 50px;
+        }
+
+        .key-1-25u {
+            width: 62px;
+        }
+
+        .key-1-5u {
+            width: 75px;
+        }
+
+        .key-1-75u {
+            width: 87px;
+        }
+
+        .key-2u {
+            width: 100px;
+        }
+
+        .key-2-25u {
+            width: 112px;
+        }
+
+        .key-2-75u {
+            width: 137px;
+        }
+
+        .key-6-25u {
+            width: 312px;
+        }
+
+        .key-h2u {
+            height: 96px;
+        }
+
+        #nav-section .key,
+        #numpad-section .key {
+            font-size: 11px;
+        }
+
+        #numpad-section {
+            display: grid;
+            grid-template-columns: repeat(4, 50px);
+            grid-template-rows: 50px repeat(5, 50px);
+            gap: 8px;
+            padding-top: 58px;
+        }
+
+        #numpad-section .key {
+            width: auto;
+            min-height: auto;
+            height: 100%;
+        }
+
+        #numpad-section .key-2u {
+            grid-column: span 2;
+        }
+
+        #numpad-section .key-h2u {
+            grid-row: span 2;
+        }
+
+        .key-7u {
+            width: 350px;
+        }
+
+        .key-spacer {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .key-spacer-half {
+            visibility: hidden;
+            pointer-events: none;
+            width: 25px;
+        }
+
+        .key-spacer-quarter {
+            visibility: hidden;
+            pointer-events: none;
+            width: 12px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats-panel {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .apm-display {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--bg-key);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--accent);
+        }
+
+        .apm-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .apm-label {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .apm-sub-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .eapm-display {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--bg-key);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .eapm-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .eapm-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .eapm-sub-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background-color: var(--bg-key);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .key-history {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            flex: 1;
+        }
+
+        .history-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background-color: var(--bg-key);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .history-key {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .history-time {
+            color: var(--text-secondary);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .legend-color.active {
+            background-color: var(--bg-key-active);
+        }
+
+        .legend-color.pressed {
+            background-color: var(--bg-key-pressed);
+        }
+
+        .legend-color.never {
+            background-color: var(--bg-key);
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .keyboard-container {
+                padding: 15px;
+            }
+            
+            .key {
+                font-size: 12px;
+                min-height: 40px;
+            }
+            
+            .key-normal {
+                width: 40px;
+            }
+            
+            .key-1-25u {
+                width: 50px;
+            }
+            
+            .key-1-5u {
+                width: 60px;
+            }
+            
+            .key-1-75u {
+                width: 70px;
+            }
+            
+            .key-2u {
+                width: 80px;
+            }
+            
+            .key-2-25u {
+                width: 90px;
+            }
+            
+            .key-2-75u {
+                width: 110px;
+            }
+            
+            .key-6-25u {
+                width: 250px;
+            }
+            
+            .key-7u {
+                width: 280px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark">
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <div class="logo-key"></div>
+                </div>
+                <div class="logo-text">客制化键盘、魔兽争霸、刀塔2、星际争霸2测试</div>
+            </div>
+            <div class="controls">
+                <div class="theme-selector">
+                    <button class="theme-btn active" data-theme="dark" title="暗黑主题"></button>
+                    <button class="theme-btn" data-theme="light" title="明亮主题"></button>
+                    <button class="theme-btn" data-theme="purple" title="紫晶主题"></button>
+                    <button class="theme-btn" data-theme="green" title="森绿主题"></button>
+                    <button class="theme-btn" data-theme="orange" title="炽橙主题"></button>
+                </div>
+                <button class="reset-btn" id="resetBtn">重置</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="keyboard-container">
+                <div class="keyboard" id="keyboard">
+                    <div class="keyboard-section" id="main-section"></div>
+                    <div class="keyboard-section" id="nav-section"></div>
+                    <div class="keyboard-section" id="numpad-section"></div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color active"></div>
+                        <span>按下中</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color pressed"></div>
+                        <span>已按过</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color never"></div>
+                        <span>未按下</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="stats-panel">
+                    <div class="apm-display">
+                        <div class="apm-value" id="apmValue">0</div>
+                        <div class="apm-label">APM</div>
+                        <div class="apm-sub-label">Actions Per Minute</div>
+                    </div>
+                    <div class="eapm-display">
+                        <div class="eapm-value" id="eapmValue">0</div>
+                        <div class="eapm-label">EAPM</div>
+                        <div class="eapm-sub-label">Effective APM</div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalKeys">0</div>
+                            <div class="stat-label">总操作数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="uniqueKeys">0</div>
+                            <div class="stat-label">不同按键</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-history">
+                    <div class="history-title">按键记录</div>
+                    <div class="history-list" id="historyList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const keyboardLayout = {
+            main: [
+                [
+                    { key: 'Esc', code: 'Escape', class: 'key-normal' },
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: 'F1', code: 'F1', class: 'key-normal' },
+                    { key: 'F2', code: 'F2', class: 'key-normal' },
+                    { key: 'F3', code: 'F3', class: 'key-normal' },
+                    { key: 'F4', code: 'F4', class: 'key-normal' },
+                    { key: '', code: '', class: 'key-spacer-half' },
+                    { key: 'F5', code: 'F5', class: 'key-normal' },
+                    { key: 'F6', code: 'F6', class: 'key-normal' },
+                    { key: 'F7', code: 'F7', class: 'key-normal' },
+                    { key: 'F8', code: 'F8', class: 'key-normal' },
+                    { key: '', code: '', class: 'key-spacer-half' },
+                    { key: 'F9', code: 'F9', class: 'key-normal' },
+                    { key: 'F10', code: 'F10', class: 'key-normal' },
+                    { key: 'F11', code: 'F11', class: 'key-normal' },
+                    { key: 'F12', code: 'F12', class: 'key-normal' }
+                ],
+                [
+                    { key: '~\n`', code: 'Backquote', class: 'key-normal' },
+                    { key: '!\n1', code: 'Digit1', class: 'key-normal' },
+                    { key: '@\n2', code: 'Digit2', class: 'key-normal' },
+                    { key: '#\n3', code: 'Digit3', class: 'key-normal' },
+                    { key: '$\n4', code: 'Digit4', class: 'key-normal' },
+                    { key: '%\n5', code: 'Digit5', class: 'key-normal' },
+                    { key: '^\n6', code: 'Digit6', class: 'key-normal' },
+                    { key: '&\n7', code: 'Digit7', class: 'key-normal' },
+                    { key: '*\n8', code: 'Digit8', class: 'key-normal' },
+                    { key: '(\n9', code: 'Digit9', class: 'key-normal' },
+                    { key: ')\n0', code: 'Digit0', class: 'key-normal' },
+                    { key: '_', code: 'Minus', class: 'key-normal' },
+                    { key: '+', code: 'Equal', class: 'key-normal' },
+                    { key: 'Backspace', code: 'Backspace', class: 'key-2u' }
+                ],
+                [
+                    { key: 'Tab', code: 'Tab', class: 'key-1-5u' },
+                    { key: 'Q', code: 'KeyQ', class: 'key-normal' },
+                    { key: 'W', code: 'KeyW', class: 'key-normal' },
+                    { key: 'E', code: 'KeyE', class: 'key-normal' },
+                    { key: 'R', code: 'KeyR', class: 'key-normal' },
+                    { key: 'T', code: 'KeyT', class: 'key-normal' },
+                    { key: 'Y', code: 'KeyY', class: 'key-normal' },
+                    { key: 'U', code: 'KeyU', class: 'key-normal' },
+                    { key: 'I', code: 'KeyI', class: 'key-normal' },
+                    { key: 'O', code: 'KeyO', class: 'key-normal' },
+                    { key: 'P', code: 'KeyP', class: 'key-normal' },
+                    { key: '{\n[', code: 'BracketLeft', class: 'key-normal' },
+                    { key: '}\n]', code: 'BracketRight', class: 'key-normal' },
+                    { key: '|\n\\', code: 'Backslash', class: 'key-1-5u' }
+                ],
+                [
+                    { key: 'Caps Lock', code: 'CapsLock', class: 'key-1-75u' },
+                    { key: 'A', code: 'KeyA', class: 'key-normal' },
+                    { key: 'S', code: 'KeyS', class: 'key-normal' },
+                    { key: 'D', code: 'KeyD', class: 'key-normal' },
+                    { key: 'F', code: 'KeyF', class: 'key-normal' },
+                    { key: 'G', code: 'KeyG', class: 'key-normal' },
+                    { key: 'H', code: 'KeyH', class: 'key-normal' },
+                    { key: 'J', code: 'KeyJ', class: 'key-normal' },
+                    { key: 'K', code: 'KeyK', class: 'key-normal' },
+                    { key: 'L', code: 'KeyL', class: 'key-normal' },
+                    { key: ':\n;', code: 'Semicolon', class: 'key-normal' },
+                    { key: '"\n\'', code: 'Quote', class: 'key-normal' },
+                    { key: 'Enter', code: 'Enter', class: 'key-2-25u' }
+                ],
+                [
+                    { key: 'Shift', code: 'ShiftLeft', class: 'key-2-25u' },
+                    { key: 'Z', code: 'KeyZ', class: 'key-normal' },
+                    { key: 'X', code: 'KeyX', class: 'key-normal' },
+                    { key: 'C', code: 'KeyC', class: 'key-normal' },
+                    { key: 'V', code: 'KeyV', class: 'key-normal' },
+                    { key: 'B', code: 'KeyB', class: 'key-normal' },
+                    { key: 'N', code: 'KeyN', class: 'key-normal' },
+                    { key: 'M', code: 'KeyM', class: 'key-normal' },
+                    { key: '<\n,', code: 'Comma', class: 'key-normal' },
+                    { key: '>\n.', code: 'Period', class: 'key-normal' },
+                    { key: '?\n/', code: 'Slash', class: 'key-normal' },
+                    { key: 'Shift', code: 'ShiftRight', class: 'key-2-75u' }
+                ],
+                [
+                    { key: 'Ctrl', code: 'ControlLeft', class: 'key-1-25u' },
+                    { key: 'Win', code: 'MetaLeft', class: 'key-1-25u' },
+                    { key: 'Alt', code: 'AltLeft', class: 'key-1-25u' },
+                    { key: 'Space', code: 'Space', class: 'key-6-25u' },
+                    { key: 'Alt', code: 'AltRight', class: 'key-1-25u' },
+                    { key: 'Win', code: 'MetaRight', class: 'key-1-25u' },
+                    { key: 'Menu', code: 'ContextMenu', class: 'key-1-25u' },
+                    { key: 'Ctrl', code: 'ControlRight', class: 'key-2-25u' }
+                ]
+            ],
+            nav: [
+                [
+                    { key: 'Insert', code: 'Insert', class: 'key-normal' },
+                    { key: 'Home', code: 'Home', class: 'key-normal' },
+                    { key: 'PgUp', code: 'PageUp', class: 'key-normal' }
+                ],
+                [
+                    { key: 'Delete', code: 'Delete', class: 'key-normal' },
+                    { key: 'End', code: 'End', class: 'key-normal' },
+                    { key: 'PgDn', code: 'PageDown', class: 'key-normal' }
+                ],
+                [
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: '', code: '', class: 'key-spacer' }
+                ],
+                [
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: '', code: '', class: 'key-spacer' }
+                ],
+                [
+                    { key: '', code: '', class: 'key-spacer' },
+                    { key: '', code: '', class: 'key-spacer-half' },
+                    { key: '↑', code: 'ArrowUp', class: 'key-normal' }
+                ],
+                [
+                    { key: '←', code: 'ArrowLeft', class: 'key-normal' },
+                    { key: '↓', code: 'ArrowDown', class: 'key-normal' },
+                    { key: '→', code: 'ArrowRight', class: 'key-normal' }
+                ]
+            ],
+            numpad: [
+                { key: 'Num\nLock', code: 'NumLock', class: 'key-normal', row: 1, col: 1 },
+                { key: '/', code: 'NumpadDivide', class: 'key-normal', row: 1, col: 2 },
+                { key: '*', code: 'NumpadMultiply', class: 'key-normal', row: 1, col: 3 },
+                { key: '-', code: 'NumpadSubtract', class: 'key-normal', row: 1, col: 4 },
+                { key: '7', code: 'Numpad7', class: 'key-normal', row: 2, col: 1 },
+                { key: '8', code: 'Numpad8', class: 'key-normal', row: 2, col: 2 },
+                { key: '9', code: 'Numpad9', class: 'key-normal', row: 2, col: 3 },
+                { key: '+', code: 'NumpadAdd', class: 'key-h2u', row: 2, col: 4, rowspan: 2 },
+                { key: '4', code: 'Numpad4', class: 'key-normal', row: 3, col: 1 },
+                { key: '5', code: 'Numpad5', class: 'key-normal', row: 3, col: 2 },
+                { key: '6', code: 'Numpad6', class: 'key-normal', row: 3, col: 3 },
+                { key: '1', code: 'Numpad1', class: 'key-normal', row: 4, col: 1 },
+                { key: '2', code: 'Numpad2', class: 'key-normal', row: 4, col: 2 },
+                { key: '3', code: 'Numpad3', class: 'key-normal', row: 4, col: 3 },
+                { key: 'Enter', code: 'NumpadEnter', class: 'key-h2u', row: 4, col: 4, rowspan: 2 },
+                { key: '0', code: 'Numpad0', class: 'key-2u', row: 5, col: 1, colspan: 2 },
+                { key: '.', code: 'NumpadDecimal', class: 'key-normal', row: 5, col: 3 }
+            ]
+        };
+
+        const keyElements = {};
+        const pressedKeys = new Set();
+        const keyHistory = [];
+        let totalKeyPresses = 0;
+        let apmHistory = [];
+        let eapmHistory = [];
+        let lastActionTime = {};
+        const MIN_ACTION_INTERVAL = 50;
+        let apmInterval = null;
+
+        function initKeyboard() {
+            const mainSection = document.getElementById('main-section');
+            const navSection = document.getElementById('nav-section');
+            const numpadSection = document.getElementById('numpad-section');
+            mainSection.innerHTML = '';
+            navSection.innerHTML = '';
+            numpadSection.innerHTML = '';
+
+            keyboardLayout.main.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                row.forEach(keyInfo => renderKey(keyInfo, rowDiv));
+                mainSection.appendChild(rowDiv);
+            });
+
+            keyboardLayout.nav.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                row.forEach(keyInfo => renderKey(keyInfo, rowDiv));
+                navSection.appendChild(rowDiv);
+            });
+
+            keyboardLayout.numpad.forEach(keyInfo => {
+                const keyDiv = document.createElement('div');
+                keyDiv.className = `key ${keyInfo.class}`;
+                keyDiv.innerHTML = keyInfo.key.replace('\n', '<br>');
+                
+                if (keyInfo.code) {
+                    keyDiv.dataset.code = keyInfo.code;
+                    keyDiv.id = `key-${keyInfo.code}`;
+                    keyElements[keyInfo.code] = keyDiv;
+                }
+                
+                if (keyInfo.rowspan) {
+                    keyDiv.style.gridRow = `span ${keyInfo.rowspan}`;
+                }
+                if (keyInfo.colspan) {
+                    keyDiv.style.gridColumn = `span ${keyInfo.colspan}`;
+                }
+                
+                numpadSection.appendChild(keyDiv);
+            });
+        }
+
+        function renderKey(keyInfo, rowDiv) {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${keyInfo.class}`;
+            keyDiv.innerHTML = keyInfo.key.replace('\n', '<br>');
+            
+            // Only add code and ID to non-spacer keys
+            if (keyInfo.code) {
+                keyDiv.dataset.code = keyInfo.code;
+                keyDiv.id = `key-${keyInfo.code}`;
+                keyElements[keyInfo.code] = keyDiv;
+            }
+            
+            rowDiv.appendChild(keyDiv);
+        }
+
+        function getKeyDisplay(code) {
+            // 检查主键区
+            for (const row of keyboardLayout.main) {
+                for (const keyInfo of row) {
+                    if (keyInfo.code === code) {
+                        return keyInfo.key.split('\n')[0];
+                    }
+                }
+            }
+            // 检查导航键区
+            for (const row of keyboardLayout.nav) {
+                for (const keyInfo of row) {
+                    if (keyInfo.code === code) {
+                        return keyInfo.key.split('\n')[0];
+                    }
+                }
+            }
+            // 检查数字键盘区（平面数组）
+            for (const keyInfo of keyboardLayout.numpad) {
+                if (keyInfo.code === code) {
+                    return keyInfo.key.split('\n')[0];
+                }
+            }
+            return code;
+        }
+
+        function addToHistory(code) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+
+            keyHistory.unshift({
+                key: getKeyDisplay(code),
+                time: timeStr
+            });
+
+            if (keyHistory.length > 20) {
+                keyHistory.pop();
+            }
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = keyHistory.map(item => `
+                <div class="history-item">
+                    <span class="history-key">${item.key}</span>
+                    <span class="history-time">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalKeys').textContent = totalKeyPresses;
+            document.getElementById('uniqueKeys').textContent = pressedKeys.size;
+        }
+
+        function updateAPM() {
+            const now = Date.now();
+            const oneMinuteAgo = now - 60000;
+            
+            apmHistory = apmHistory.filter(time => time > oneMinuteAgo);
+            eapmHistory = eapmHistory.filter(time => time > oneMinuteAgo);
+            
+            document.getElementById('apmValue').textContent = apmHistory.length;
+            document.getElementById('eapmValue').textContent = eapmHistory.length;
+        }
+
+        function handleKeyDown(e) {
+            e.preventDefault();
+            const code = e.code;
+            const now = Date.now();
+            
+            if (keyElements[code]) {
+                if (!keyElements[code].classList.contains('pressed')) {
+                    keyElements[code].classList.add('pressed');
+                    pressedKeys.add(code);
+                }
+                keyElements[code].classList.add('active');
+                
+                totalKeyPresses++;
+                apmHistory.push(now);
+                
+                if (!lastActionTime[code] || now - lastActionTime[code] >= MIN_ACTION_INTERVAL) {
+                    eapmHistory.push(now);
+                }
+                lastActionTime[code] = now;
+                
+                addToHistory(code);
+                updateStats();
+                updateAPM();
+            }
+        }
+
+        function handleKeyUp(e) {
+            const code = e.code;
+            if (keyElements[code]) {
+                keyElements[code].classList.remove('active');
+            }
+        }
+
+        function reset() {
+            Object.values(keyElements).forEach(key => {
+                key.classList.remove('active', 'pressed');
+            });
+            pressedKeys.clear();
+            keyHistory.length = 0;
+            totalKeyPresses = 0;
+            apmHistory = [];
+            eapmHistory = [];
+            lastActionTime = {};
+            
+            updateStats();
+            updateAPM();
+            renderHistory();
+        }
+
+        function setTheme(theme) {
+            document.body.className = `theme-${theme}`;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            localStorage.setItem('keyboardTesterTheme', theme);
+        }
+
+        function init() {
+            initKeyboard();
+            
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            document.getElementById('resetBtn').addEventListener('click', reset);
+            
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+            });
+            
+            const savedTheme = localStorage.getItem('keyboardTesterTheme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+            
+            apmInterval = setInterval(updateAPM, 500);
+        }
+
+        init();
+    </script>
+</body>
+</html>
